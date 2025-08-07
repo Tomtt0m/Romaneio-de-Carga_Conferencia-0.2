@@ -362,7 +362,7 @@ def criar_dados_iniciais():
                     rota='0864',
                     pre_nota='549351',
                     numero_caixa='0068',
-                    chave_de_acesso="670103050086405493500000001820250729006770",
+                    chave_de_acesso="670103050086405493500000001820250729006870",
                     romaneio=romaneios[0]
                     
                 ),
@@ -613,3 +613,4 @@ if __name__ == '__main__':
     if not os.path.exists('romaneio.db'):
         criar_dados_iniciais()
     app.run(debug=True, host='0.0.0.0')
+
