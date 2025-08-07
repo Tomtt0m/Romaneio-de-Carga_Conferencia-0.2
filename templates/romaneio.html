@@ -178,6 +178,13 @@
     <span id="txt_progresso">0%</span>
   </div>
 
+  <div style="margin-bottom: 15px;">
+    <label for="cameraSelect">Escolha a câmera:</label>
+    <select id="cameraSelect" style="padding: 10px; border-radius: 6px; font-size: 1rem;">
+      <option>Carregando câmeras...</option>
+    </select>
+  </div>
+
   <div style="margin-top: 30px; display: flex; flex-wrap: wrap; justify-content: center; gap: 15px;">
     <button id="btn_iniciar" onclick="iniciarLeitor()">Começar Conferência</button>
     <button id="btn_parar" onclick="pararLeitor()" style="display:none; background-color: #6c757d;">Parar Conferência</button>
@@ -233,7 +240,8 @@
       alert('Itens no volume:\n' + itens.map(i => i.descricao).join('\n'));
     }
 
-    function iniciarLeitor() {
+    async function iniciarLeitor() {
+      const cameraId = document.getElementById('cameraSelect').value;
       const container = document.getElementById('qr-reader-container');
       container.style.display = 'flex';
 
@@ -241,28 +249,30 @@
 
       html5QrCode = new Html5Qrcode("qr-reader");
 
-      html5QrCode.start(
-        { facingMode: "environment" }, // Usa a câmera traseira
-        {
-          fps: 15,
-          qrbox: { width: 300, height: 300 },
-          aspectRatio: 1,
-          experimentalFeatures: { useBarCodeDetectorIfSupported: true }
-        },
-        qrCodeMessage => {
-          validarVolume(qrCodeMessage);
-        },
-        errorMessage => {
-          // console.log("Erro leitura QR code: ", errorMessage);
-        }
-      ).then(() => {
+      try {
+        await html5QrCode.start(
+          { deviceId: { exact: cameraId } },
+          {
+            fps: 15,
+            qrbox: { width: 300, height: 300 },
+            aspectRatio: 1,
+            experimentalFeatures: { useBarCodeDetectorIfSupported: true }
+          },
+          qrCodeMessage => validarVolume(qrCodeMessage),
+          errorMessage => {
+            // console.warn("Erro leitura QR: ", errorMessage);
+          }
+        );
+
         leituraAtiva = true;
         document.getElementById('btn_parar').style.display = 'inline-block';
-      }).catch(err => {
+
+      } catch (err) {
         console.error("Erro ao iniciar leitor:", err);
-        alert("Erro ao iniciar o leitor de QR Code.");
-      });
+        alert("Erro ao iniciar a câmera. Tente novamente ou escolha outra.");
+      }
     }
+
 
     function pararLeitor() {
       if (html5QrCode && leituraAtiva) {
@@ -328,8 +338,32 @@
         alert("Erro ao finalizar conferência: " + (data.erro || "Erro desconhecido"));
       }
     }
+    async function listarCameras() {
+      const select = document.getElementById('cameraSelect');
+      try {
+        const devices = await Html5Qrcode.getCameras();
+        if (devices && devices.length) {
+          select.innerHTML = '';
+          devices.forEach(device => {
+            const option = document.createElement('option');
+            option.value = device.id;
+            option.text = device.label || `Câmera ${select.length + 1}`;
+            select.appendChild(option);
+          });
+        } else {
+          select.innerHTML = '<option>Nenhuma câmera encontrada</option>';
+        }
+      } catch (err) {
+        console.error("Erro ao listar câmeras:", err);
+        select.innerHTML = '<option>Erro ao acessar câmeras</option>';
+      }
+    }
 
-    window.onload = carregarVolumes;
+
+    window.onload = () => {
+      carregarVolumes();
+      listarCameras();
+    };
   </script>
 </body>
 </html>
