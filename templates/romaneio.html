@@ -39,6 +39,7 @@
       cursor: default;
       color: #00377B;
     }
+
     tbody tr:hover {
       transform: translateY(-3px);
       box-shadow: 0 8px 20px rgba(0, 55, 123, 0.15);
@@ -108,6 +109,7 @@
       align-items: center;
       margin: 50px 0;
     }
+
     #qr-reader-container {
       display: none;
       justify-content: center;
@@ -141,10 +143,9 @@
 
   <h2>Conferência {{ romaneio.pre_nota }} - Nota {{ romaneio.num_nota }}</h2>
 
-  <!-- Câmera e esquadro -->
-  <div id="qr-reader-container" style="display: none; justify-content: center; margin-top: 20px;">
+  <div id="qr-reader-container">
     <div style="position: relative; width: 300px; height: 300px;">
-      <div id="qr-reader" style="width: 300px; height: 300px; border-radius: 8px;"></div>
+      <div id="qr-reader"></div>
       <div style="
         position: absolute;
         top: 0;
@@ -177,17 +178,13 @@
     <span id="txt_progresso">0%</span>
   </div>
 
-  <!-- Botões -->
   <div style="margin-top: 30px; display: flex; flex-wrap: wrap; justify-content: center; gap: 15px;">
     <button id="btn_iniciar" onclick="iniciarLeitor()">Começar Conferência</button>
     <button id="btn_parar" onclick="pararLeitor()" style="display:none; background-color: #6c757d;">Parar Conferência</button>
-
     <button id="btn_falta" onclick="reportarFaltantes()" style="display: none;">Falta</button>
-
     <button id="btn_finalizar" onclick="finalizarConferencia()">Finalizar Conferência</button>
   </div>
 
-  <!-- Botão Voltar separado embaixo -->
   <div style="display: flex; justify-content: center; margin-top: 25px;">
     <a class="button-link" href="{{ url_for('menu') }}">Voltar ao menu</a>
   </div>
@@ -227,7 +224,6 @@
       const prog = data.total > 0 ? Math.round(data.conferidos / data.total * 100) : 0;
       document.getElementById('barra_progresso').value = prog;
       document.getElementById('txt_progresso').innerText = prog + '%';
-
       document.getElementById('btn_falta').style.display = prog < 100 ? 'inline-block' : 'none';
     }
 
@@ -245,42 +241,28 @@
 
       html5QrCode = new Html5Qrcode("qr-reader");
 
-      Html5Qrcode.getCameras().then(cameras => {
-        if (cameras && cameras.length) {
-          let cameraId = cameras[0].id;
-
-          html5QrCode.start(
-            cameraId,
-            {
-              fps: 15,
-              qrbox: { width: 300, height: 300 },
-              aspectRatio: 1,
-              experimentalFeatures: { useBarCodeDetectorIfSupported: true }
-            },
-            qrCodeMessage => {
-              validarVolume(qrCodeMessage);
-            },
-            errorMessage => {
-              // console.log("Erro leitura QR code: ", errorMessage);
-            }
-          ).then(() => {
-            leituraAtiva = true;
-            document.getElementById('btn_parar').style.display = 'inline-block'
-          }).catch(err => {
-            console.error("Erro ao iniciar leitor:", err);
-          });
-        } else {
-          alert("Nenhuma câmera encontrada.");
+      html5QrCode.start(
+        { facingMode: "environment" }, // Usa a câmera traseira
+        {
+          fps: 15,
+          qrbox: { width: 300, height: 300 },
+          aspectRatio: 1,
+          experimentalFeatures: { useBarCodeDetectorIfSupported: true }
+        },
+        qrCodeMessage => {
+          validarVolume(qrCodeMessage);
+        },
+        errorMessage => {
+          // console.log("Erro leitura QR code: ", errorMessage);
         }
+      ).then(() => {
+        leituraAtiva = true;
+        document.getElementById('btn_parar').style.display = 'inline-block';
       }).catch(err => {
-        console.error("Erro ao acessar câmeras:", err);
-        alert("Erro ao acessar a câmera.");
-        document.getElementById('btn_iniciar').disabled = false;
-        document.getElementById('btn_parar').style.display = 'none';
+        console.error("Erro ao iniciar leitor:", err);
+        alert("Erro ao iniciar o leitor de QR Code.");
       });
     }
-
-
 
     function pararLeitor() {
       if (html5QrCode && leituraAtiva) {
@@ -300,9 +282,7 @@
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({
-            chave: qrCodeMessage  // Aqui enviamos o campo "chave"
-          })
+          body: JSON.stringify({ chave: qrCodeMessage })
         });
 
         const data = await res.json();
@@ -333,8 +313,6 @@
       if (!confirm('Tem certeza que deseja finalizar a conferência?')) return;
       pararLeitor();
 
-      const romaneioId = {{ romaneio.id }};
-
       const response = await fetch('/finalizar_conferencia', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -345,13 +323,11 @@
 
       if (response.ok) {
         alert(`Conferência finalizada com ${data.conferidos} de ${data.total} volumes.\nStatus do romaneio: ${data.status_romaneio}`);
-        // Atualiza a tabela e progresso depois de finalizar
         carregarVolumes();
       } else {
         alert("Erro ao finalizar conferência: " + (data.erro || "Erro desconhecido"));
       }
     }
-
 
     window.onload = carregarVolumes;
   </script>
