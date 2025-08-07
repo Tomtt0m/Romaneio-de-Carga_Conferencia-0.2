@@ -1,0 +1,6 @@
+Flask==2.3.3
+flask_sqlalchemy
+flask_wtf
+wtforms
+gunicorn
+fpdf
