@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8" />
+<title>Menu de Notas</title>
+</head>
+<style>
+  /* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Body e fundo */
+body {
+  background: #f4f7fa;
+  color: #00377B;
+  line-height: 1.6;
+  min-height: 100vh;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Container geral */
+.container {
+  background: white;
+  max-width: 900px;
+  width: 95%;
+  padding: 30px 40px;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0,55,123,0.15);
+  transition: box-shadow 0.3s ease;
+}
+
+.container:hover {
+  box-shadow: 0 12px 30px rgba(0,55,123,0.3);
+}
+
+/* Títulos */
+h1, h2, h3 {
+  color: #00377B;
+  margin-bottom: 15px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+/* Formulários */
+form {
+  margin-bottom: 25px;
+}
+
+input[type="text"],
+input[type="password"],
+select {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid #00377B;
+  border-radius: 8px;
+  font-size: 1rem;
+  color: #00377B;
+  outline-offset: 2px;
+  transition: border-color 0.3s ease;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus,
+select:focus {
+  border-color: #0055cc;
+  box-shadow: 0 0 6px #0055ccaa;
+}
+
+/* Botões */
+button, a.button-link {
+  background-color: #00377B;
+  color: #fff;
+  border: none;
+  padding: 12px 25px;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+  user-select: none;
+}
+
+button:hover, a.button-link:hover {
+  background-color: #0055cc;
+  box-shadow: 0 6px 12px rgba(0, 55, 123, 0.4);
+}
+
+/* Tabela estilizada */
+table {
+  border-collapse: separate;
+  border-spacing: 0 12px;
+  width: 100%;
+}
+
+thead th {
+  text-align: left;
+  padding: 12px 15px;
+  background: #00377B;
+  color: white;
+  font-weight: 600;
+  border-radius: 10px 10px 0 0;
+  user-select: none;
+}
+
+tbody tr {
+  background: #f9fbfd;
+  box-shadow: 0 3px 6px rgba(0,55,123,0.05);
+  transition: transform 0.2s ease;
+  cursor: default;
+}
+
+tbody tr:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0,55,123,0.15);
+}
+
+tbody td {
+  padding: 12px 15px;
+  color: #00377B;
+  vertical-align: middle;
+}
+
+/* Status colorido */
+.status-pendente {
+  color: #f0ad4e; /* laranja suave */
+  font-weight: 600;
+}
+
+.status-confirmado {
+  color: #28a745; /* verde */
+  font-weight: 600;
+}
+
+.status-faltante {
+  color: #dc3545; /* vermelho */
+  font-weight: 600;
+}
+
+.status-finalizado {
+  color: #00377B;
+  font-weight: 700;
+}
+
+/* Barra de progresso estilizada */
+progress {
+  width: 100%;
+  height: 20px;
+  border-radius: 12px;
+  overflow: hidden;
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: #d8e2f1;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 15px;
+}
+
+progress::-webkit-progress-bar {
+  background-color: #d8e2f1;
+  border-radius: 12px;
+}
+
+progress::-webkit-progress-value {
+  background-color: #00377B;
+  border-radius: 12px 0 0 12px;
+  transition: width 0.4s ease;
+}
+
+progress::-moz-progress-bar {
+  background-color: #00377B;
+  border-radius: 12px 0 0 12px;
+  transition: width 0.4s ease;
+}
+
+/* Mensagens e alertas */
+.error-msg {
+  background-color: #fdecea;
+  color: #dc3545;
+  border-left: 6px solid #dc3545;
+  padding: 10px 15px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+}
+
+/* Layout responsivo simples */
+@media (max-width: 700px) {
+  .container {
+    padding: 20px 15px;
+  }
+
+  table thead {
+    display: none;
+  }
+  table, tbody, tr, td {
+    display: block;
+    width: 100%;
+  }
+  tbody tr {
+    margin-bottom: 20px;
+    box-shadow: 0 3px 8px rgba(0,55,123,0.1);
+  }
+  tbody td {
+    padding-left: 50%;
+    position: relative;
+    text-align: right;
+  }
+  tbody td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 15px;
+    width: 45%;
+    padding-left: 10px;
+    font-weight: 700;
+    text-align: left;
+    color: #00377B;
+  }
+}
+a.button-link {
+  background-color: #00377B;
+  color: #fff;
+  padding: 12px 25px;
+  border-radius: 8px;
+  display: inline-block;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+  
+</style>
+<body>
+  <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 30px;">
+  <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="max-width: 50px; height: auto;">
+</div>
+<h2>Menu de Notas</h2>
+
+<form method="get" action="{{ url_for('menu') }}">
+  <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center; margin-bottom: 20px;">
+
+    <label for="pre_nota">Pré-nota:</label>
+    <input type="text" name="pre_nota" id="pre_nota" style="width: 120px;" value="{{ request.args.get('pre_nota','') }}" />
+
+    <label for="status">Status:</label>
+    <select name="status" id="status" style="width: 120px;">
+        <option value="">Todos</option>
+        <option value="pendente" {% if request.args.get('status') == 'pendente' %}selected{% endif %}>Pendente</option>
+        <option value="confirmado" {% if request.args.get('status') == 'confirmado' %}selected{% endif %}>Confirmado</option>
+        <option value="faltante" {% if request.args.get('status') == 'faltante' %}selected{% endif %}>Faltante</option>
+        <option value="finalizado" {% if request.args.get('status') == 'finalizado' %}selected{% endif %}>Finalizado</option>
+    </select>
+
+    <label for="data_inicio">De:</label>
+    <input type="date" name="data_inicio" id="data_inicio" style="width: 160px;" value="{{ request.args.get('data_inicio','') }}" />
+
+    <label for="data_fim">Até:</label>
+    <input type="date" name="data_fim" id="data_fim" style="width: 160px;" value="{{ request.args.get('data_fim','') }}" />
+
+    <button type="submit">Filtrar</button>
+    <button type="button" onclick="selecionarTodos()">Selecionar Todos</button>
+    <button id="gerarPdfLote" type="button" onclick="gerarPDFs()" style="display:none;">Gerar PDF</button>
+  </div>
+</form>
+
+
+<table border="1" cellpadding="5" cellspacing="0">
+<thead>
+<tr>
+    <th></th>
+    <th>Pré-nota</th>
+    <th>Nota Fiscal</th>
+    <th>Data de Emissão</th>
+    <th>Status</th>
+    <th>Progresso</th>
+    <th>PDF</th>
+    <th>Ação</th>
+</tr>
+</thead>
+<tbody>
+{% for r in romaneios %}
+<tr>
+    <td><input type="checkbox" class="checkbox-romaneio" value="{{ r.id }}" onchange="atualizarBotaoPDF()" /></td>
+    <td>{{ r.pre_nota }}</td>
+    <td>{{ r.num_nota }}</td>
+    <td>{{ r.data_emissao }}</td>
+    <td>{{ r.status }}</td>
+
+    <td>
+      <div style="display: flex; flex-direction: column; align-items: center;">
+        <progress value="{{ progresso[r.id] }}" max="100" style="width: 120px;"></progress>
+        <span style="margin-top: 4px; font-weight: 600;">{{ progresso[r.id] }}%</span>
+      </div>
+    </td>
+    <td>
+    <a href="{{ url_for('gerar_pdf', romaneio_id=r.id) }}"
+       style="background-color: #00377B; color: white; padding: 8px 14px; text-decoration: none; border-radius: 4px; display: inline-block;">
+        Gerar PDF
+    </a>
+</td>
+<td>
+    <a href="{{ url_for('romaneio', id=r.id) }}"
+       style="background-color: #00377B; color: white; padding: 8px 14px; text-decoration: none; border-radius: 4px; display: inline-block;">
+        Conferir
+    </a>
+</td>
+</tr>
+{% else %}
+<tr><td colspan="8">Nenhum romaneio encontrado.</td></tr>
+{% endfor %}
+</tbody>
+</table>
+
+<script>
+function selecionarTodos() {
+  const checkboxes = document.querySelectorAll('.checkbox-romaneio');
+  const todosMarcados = Array.from(checkboxes).every(cb => cb.checked);
+  checkboxes.forEach(cb => cb.checked = !todosMarcados);
+  atualizarBotaoPDF();
+}
+
+function atualizarBotaoPDF() {
+  const checkboxes = document.querySelectorAll('.checkbox-romaneio:checked');
+  const botaoPDF = document.getElementById('gerarPdfLote');
+  botaoPDF.style.display = checkboxes.length > 0 ? 'inline-block' : 'none';
+}
+
+function gerarPDFs() {
+  const selecionados = Array.from(document.querySelectorAll('.checkbox-romaneio:checked'))
+    .map(cb => cb.value);
+
+  if (selecionados.length === 0) return;
+
+  // Redirecionar para rota de geração em lote com IDs como query string
+  const query = selecionados.map(id => 'ids=' + encodeURIComponent(id)).join('&');
+  window.location.href = `/gerar_pdf_lote?${query}`;
+}
+</script>
+
+
+
+<p style="margin-top: 30px;">
+  <a class="button-link" href="{{ url_for('logout') }}">Sair</a>
+</p>
+
+
+
+</body>
+</html>

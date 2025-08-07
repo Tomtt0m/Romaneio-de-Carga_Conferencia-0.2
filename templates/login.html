@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8" />
+<title>Login - Romaneio Digital</title>
+</head>
+<body>
+<style>
+  /* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Body e fundo */
+body {
+  background: #f4f7fa;
+  color: #00377B;
+  line-height: 1.6;
+  min-height: 100vh;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Container geral */
+.container {
+  background: white;
+  max-width: 900px;
+  width: 95%;
+  padding: 30px 40px;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0,55,123,0.15);
+  transition: box-shadow 0.3s ease;
+}
+
+.container:hover {
+  box-shadow: 0 12px 30px rgba(0,55,123,0.3);
+}
+
+/* Títulos */
+h1, h2, h3 {
+  color: #00377B;
+  margin-bottom: 15px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+/* Formulários */
+form {
+  margin-bottom: 25px;
+}
+
+input[type="text"],
+input[type="password"],
+select {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid #00377B;
+  border-radius: 8px;
+  font-size: 1rem;
+  color: #00377B;
+  outline-offset: 2px;
+  transition: border-color 0.3s ease;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus,
+select:focus {
+  border-color: #0055cc;
+  box-shadow: 0 0 6px #0055ccaa;
+}
+
+/* Botões */
+button, a.button-link {
+  background-color: #00377B;
+  color: #fff;
+  border: none;
+  padding: 12px 25px;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+  user-select: none;
+}
+
+button:hover, a.button-link:hover {
+  background-color: #0055cc;
+  box-shadow: 0 6px 12px rgba(0, 55, 123, 0.4);
+}
+
+/* Tabela estilizada */
+table {
+  border-collapse: separate;
+  border-spacing: 0 12px;
+  width: 100%;
+}
+
+thead th {
+  text-align: left;
+  padding: 12px 15px;
+  background: #00377B;
+  color: white;
+  font-weight: 600;
+  border-radius: 10px 10px 0 0;
+  user-select: none;
+}
+
+tbody tr {
+  background: #f9fbfd;
+  box-shadow: 0 3px 6px rgba(0,55,123,0.05);
+  transition: transform 0.2s ease;
+  cursor: default;
+}
+
+tbody tr:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0,55,123,0.15);
+}
+
+tbody td {
+  padding: 12px 15px;
+  color: #00377B;
+  vertical-align: middle;
+}
+
+/* Status colorido */
+.status-pendente {
+  color: #f0ad4e; /* laranja suave */
+  font-weight: 600;
+}
+
+.status-confirmado {
+  color: #28a745; /* verde */
+  font-weight: 600;
+}
+
+.status-faltante {
+  color: #dc3545; /* vermelho */
+  font-weight: 600;
+}
+
+.status-finalizado {
+  color: #00377B;
+  font-weight: 700;
+}
+
+/* Barra de progresso estilizada */
+progress {
+  width: 100%;
+  height: 20px;
+  border-radius: 12px;
+  overflow: hidden;
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: #d8e2f1;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 15px;
+}
+
+progress::-webkit-progress-bar {
+  background-color: #d8e2f1;
+  border-radius: 12px;
+}
+
+progress::-webkit-progress-value {
+  background-color: #00377B;
+  border-radius: 12px 0 0 12px;
+  transition: width 0.4s ease;
+}
+
+progress::-moz-progress-bar {
+  background-color: #00377B;
+  border-radius: 12px 0 0 12px;
+  transition: width 0.4s ease;
+}
+
+/* Mensagens e alertas */
+.error-msg {
+  background-color: #fdecea;
+  color: #dc3545;
+  border-left: 6px solid #dc3545;
+  padding: 10px 15px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+}
+
+/* Layout responsivo simples */
+@media (max-width: 700px) {
+  .container {
+    padding: 20px 15px;
+  }
+
+  table thead {
+    display: none;
+  }
+  table, tbody, tr, td {
+    display: block;
+    width: 100%;
+  }
+  tbody tr {
+    margin-bottom: 20px;
+    box-shadow: 0 3px 8px rgba(0,55,123,0.1);
+  }
+  tbody td {
+    padding-left: 50%;
+    position: relative;
+    text-align: right;
+  }
+  tbody td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 15px;
+    width: 45%;
+    padding-left: 10px;
+    font-weight: 700;
+    text-align: left;
+    color: #00377B;
+  }
+}
+  
+</style>
+<h2>Login</h2>
+<form method="POST">
+    <label>CNPJ:</label><br>
+    <input type="text" name="cnpj" required /><br>
+    <label>Senha:</label><br>
+    <input type="password" name="senha" required /><br><br>
+    <button type="submit">Entrar</button>
+</form>
+{% if erro %}
+<p style="color:red;">{{ erro }}</p>
+{% endif %}
+</body>
+</html>

@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Conferência de Romaneio</title>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <style>
+    body {
+      background: #f4f7fa;
+      color: #00377B;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    table {
+      border-collapse: separate;
+      border-spacing: 0 12px;
+      width: 100%;
+    }
+
+    thead th {
+      text-align: left;
+      padding: 12px 15px;
+      background: #00377B;
+      color: white;
+      font-weight: 600;
+      border-radius: 10px 10px 0 0;
+      user-select: none;
+    }
+
+    tbody tr {
+      background: #f9fbfd;
+      box-shadow: 0 3px 6px rgba(0, 55, 123, 0.05);
+      transition: transform 0.2s ease;
+      cursor: default;
+      color: #00377B;
+    }
+    tbody tr:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0, 55, 123, 0.15);
+    }
+
+    tbody tr.confirmado {
+      background-color: #d4edda !important;
+      color: #155724;
+    }
+
+    tbody tr.faltante {
+      background-color: #f8d7da !important;
+      color: #721c24;
+    }
+
+    tbody td {
+      padding: 12px 15px;
+      vertical-align: middle;
+      text-align: center;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px 10px;
+    }
+
+    th {
+      background-color: #e9eef5;
+    }
+
+    .button-link, button {
+      background-color: #00377B;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background-color 0.3s ease;
+    }
+
+    .button-link:hover, button:hover {
+      background-color: #0055cc;
+    }
+
+    #btn_falta {
+      background-color: #dc3545;
+    }
+
+    #btn_falta:hover {
+      background-color: #c82333;
+    }
+
+    #btn_finalizar {
+      background-color: #28a745;
+    }
+
+    #btn_finalizar:hover {
+      background-color: #218838;
+    }
+
+    .progresso {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 50px 0;
+    }
+    #qr-reader-container {
+      display: none;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    #qr-reader-container > div {
+      position: relative;
+      width: 300px !important;
+      height: 300px !important;
+      padding: 0 !important;
+      margin: 0 auto !important;
+      overflow: hidden;
+      border-radius: 8px;
+    }
+
+    #qr-reader {
+      width: 300px !important;
+      height: 300px !important;
+      background-color: black;
+      border-radius: 8px;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+  </style>
+</head>
+<body>
+  <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 30px;">
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="max-width: 50px; height: auto;">
+  </div>
+
+  <h2>Conferência {{ romaneio.pre_nota }} - Nota {{ romaneio.num_nota }}</h2>
+
+  <!-- Câmera e esquadro -->
+  <div id="qr-reader-container" style="display: none; justify-content: center; margin-top: 20px;">
+    <div style="position: relative; width: 300px; height: 300px;">
+      <div id="qr-reader" style="width: 300px; height: 300px; border-radius: 8px;"></div>
+      <div style="
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+        border: 4px solid rgba(0, 55, 123, 0.6);
+        pointer-events: none;">
+      </div>
+    </div>
+  </div>
+  
+  <table>
+    <thead>
+      <tr>
+        <th>Tipo Caixa</th>
+        <th>Matrícula</th>
+        <th>Quantidade</th>
+        <th>Status</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody id="volumes_tbody"></tbody>
+  </table>
+
+  <div class="progresso">
+    <label for="barra_progresso">Progresso da conferência:</label>
+    <progress id="barra_progresso" value="0" max="100" style="width: 900px; height: 50px;"></progress>
+    <span id="txt_progresso">0%</span>
+  </div>
+
+  <!-- Botões -->
+  <div style="margin-top: 30px; display: flex; flex-wrap: wrap; justify-content: center; gap: 15px;">
+    <button id="btn_iniciar" onclick="iniciarLeitor()">Começar Conferência</button>
+    <button id="btn_parar" onclick="pararLeitor()" style="display:none; background-color: #6c757d;">Parar Conferência</button>
+
+    <button id="btn_falta" onclick="reportarFaltantes()" style="display: none;">Falta</button>
+
+    <button id="btn_finalizar" onclick="finalizarConferencia()">Finalizar Conferência</button>
+  </div>
+
+  <!-- Botão Voltar separado embaixo -->
+  <div style="display: flex; justify-content: center; margin-top: 25px;">
+    <a class="button-link" href="{{ url_for('menu') }}">Voltar ao menu</a>
+  </div>
+
+  <script>
+    const romaneioId = {{ romaneio.id }};
+    let volumesLidos = new Set();
+    let html5QrCode;
+    let leituraAtiva = false;
+
+    async function carregarVolumes() {
+      const res = await fetch('/api/volumes/' + romaneioId);
+      const volumes = await res.json();
+      const tabela = document.getElementById('volumes_tbody');
+      tabela.innerHTML = '';
+      for (let v of volumes) {
+        let tr = document.createElement('tr');
+        tr.className = '';
+        if (v.status === 'confirmado') tr.classList.add('confirmado');
+        else if (v.status === 'faltante') tr.classList.add('faltante');
+
+        tr.innerHTML = `
+          <td>${v.tipo_caixa}</td>
+          <td>${v.matricula}</td>
+          <td>${v.quantidade}</td>
+          <td id="status-${v.id}">${v.status}</td>
+          <td><button onclick="verItens(${v.id})">Ver Itens</button></td>
+        `;
+        tabela.appendChild(tr);
+      }
+      atualizarProgresso();
+    }
+
+    async function atualizarProgresso() {
+      const res = await fetch('/progresso/' + romaneioId);
+      const data = await res.json();
+      const prog = data.total > 0 ? Math.round(data.conferidos / data.total * 100) : 0;
+      document.getElementById('barra_progresso').value = prog;
+      document.getElementById('txt_progresso').innerText = prog + '%';
+
+      document.getElementById('btn_falta').style.display = prog < 100 ? 'inline-block' : 'none';
+    }
+
+    async function verItens(volume_id) {
+      const res = await fetch('/api/itens/' + volume_id);
+      const itens = await res.json();
+      alert('Itens no volume:\n' + itens.map(i => i.descricao).join('\n'));
+    }
+
+    function iniciarLeitor() {
+      const container = document.getElementById('qr-reader-container');
+      container.style.display = 'flex';
+
+      if (leituraAtiva) return;
+
+      html5QrCode = new Html5Qrcode("qr-reader");
+
+      Html5Qrcode.getCameras().then(cameras => {
+        if (cameras && cameras.length) {
+          let cameraId = cameras[0].id;
+
+          html5QrCode.start(
+            cameraId,
+            {
+              fps: 15,
+              qrbox: { width: 300, height: 300 },
+              aspectRatio: 1,
+              experimentalFeatures: { useBarCodeDetectorIfSupported: true }
+            },
+            qrCodeMessage => {
+              validarVolume(qrCodeMessage);
+            },
+            errorMessage => {
+              // console.log("Erro leitura QR code: ", errorMessage);
+            }
+          ).then(() => {
+            leituraAtiva = true;
+            document.getElementById('btn_parar').style.display = 'inline-block'
+          }).catch(err => {
+            console.error("Erro ao iniciar leitor:", err);
+          });
+        } else {
+          alert("Nenhuma câmera encontrada.");
+        }
+      }).catch(err => {
+        console.error("Erro ao acessar câmeras:", err);
+        alert("Erro ao acessar a câmera.");
+        document.getElementById('btn_iniciar').disabled = false;
+        document.getElementById('btn_parar').style.display = 'none';
+      });
+    }
+
+
+
+    function pararLeitor() {
+      if (html5QrCode && leituraAtiva) {
+        html5QrCode.stop().then(() => {
+          leituraAtiva = false;
+          document.getElementById('qr-reader-container').style.display = 'none';
+          document.getElementById('btn_iniciar').disabled = false;
+          document.getElementById('btn_parar').style.display = 'none';
+        });
+      }
+    }
+
+    async function validarVolume(qrCodeMessage) {
+      try {
+        const res = await fetch('/validar_volume', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            chave: qrCodeMessage  // Aqui enviamos o campo "chave"
+          })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          alert("Volume confirmado: " + data.matricula);
+          document.getElementById(`status-${data.volume_id}`).innerText = 'confirmado';
+          document.getElementById(`status-${data.volume_id}`).parentElement.style.backgroundColor = '#d4edda';
+          atualizarProgresso();
+        } else {
+          alert("Erro: " + data.erro);
+        }
+
+      } catch (err) {
+        console.error("Erro na validação:", err);
+        alert("Erro ao validar o volume.");
+      }
+    }
+
+    async function reportarFaltantes() {
+      const res = await fetch('/faltantes/' + romaneioId);
+      const json = await res.json();
+      const nomes = json.faltantes.map(v => `Caixa: ${v.tipo_caixa}, Matrícula: ${v.matricula}`).join('\n');
+      alert("Volumes faltantes:\n" + nomes);
+    }
+
+    async function finalizarConferencia() {
+      if (!confirm('Tem certeza que deseja finalizar a conferência?')) return;
+      pararLeitor();
+
+      const romaneioId = {{ romaneio.id }};
+
+      const response = await fetch('/finalizar_conferencia', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ romaneio_id: romaneioId })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(`Conferência finalizada com ${data.conferidos} de ${data.total} volumes.\nStatus do romaneio: ${data.status_romaneio}`);
+        // Atualiza a tabela e progresso depois de finalizar
+        carregarVolumes();
+      } else {
+        alert("Erro ao finalizar conferência: " + (data.erro || "Erro desconhecido"));
+      }
+    }
+
+
+    window.onload = carregarVolumes;
+  </script>
+</body>
+</html>
